@@ -1,0 +1,14 @@
+server:
+  servlet:
+    context-path: /otpmobile/ticketing/api
+  port: 3000
+  
+spring:
+  application:
+    name: api
+  task:
+    execution.thread-name-prefix: ${spring.application.name}-
+    
+integration:
+  core.url: http://localhost:4000/otpmobile/ticketing/core
+  ticket.url: http://localhost:6000/otpmobile/ticketing/ticket

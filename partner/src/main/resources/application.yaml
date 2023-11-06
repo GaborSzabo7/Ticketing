@@ -1,0 +1,10 @@
+server:
+  servlet:
+    context-path: /otpmobile/ticketing/partner
+  port: 5000
+  
+spring:
+  application:
+    name: partner
+  task:
+    execution.thread-name-prefix: ${spring.application.name}-

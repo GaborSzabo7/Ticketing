@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration" xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration-5.2.xsd
+    http://www.springframework.org/schema/integration/http
+    https://www.springframework.org/schema/integration/http/spring-integration-http-5.2.xsd">
+
+	<int:chain id="partnerEvents" input-channel="partnerEventsChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.partner.url') + '/event/all'}" http-method="GET"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.ticket.model.EventData">
+		</int-http:outbound-gateway>
+	</int:chain>
+
+	<int:chain id="partnerEventSeats" input-channel="partnerEventSeatsChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.partner.url') + '/event/seats/{eventId}'}" http-method="GET"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.ticket.model.EventSeatData">
+			<int-http:uri-variable name="eventId" expression="payload" />
+		</int-http:outbound-gateway>
+	</int:chain>
+	
+	<int:chain id="partnerReserveSeat" input-channel="partnerReserveSeatChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.partner.url') + '/event/reserve/{eventId}/{seat}'}" http-method="POST"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.ticket.infrastructure.intgeration.partner.response.ReserveResponse">
+			<int-http:uri-variable name="eventId" expression="payload.eventId" />
+			<int-http:uri-variable name="seat" expression="payload.seat" />
+		</int-http:outbound-gateway>
+	</int:chain>
+	
+	<int:chain id="partnerSeatPrice" input-channel="partnerSeatPriceChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.partner.url') + '/event/price/{eventId}/{seat}'}" http-method="POST"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="java.lang.Integer">
+			<int-http:uri-variable name="eventId" expression="payload.eventId" />
+			<int-http:uri-variable name="seat" expression="payload.seat" />
+		</int-http:outbound-gateway>
+	</int:chain>
+	
+	<int:chain id="partnerEventStartTime" input-channel="partnerEventStartTimeChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.partner.url') + '/event/starttime/{eventId}'}" http-method="POST"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="java.lang.Long">
+			<int-http:uri-variable name="eventId" expression="payload" />
+		</int-http:outbound-gateway>
+	</int:chain>
+	
+</beans>

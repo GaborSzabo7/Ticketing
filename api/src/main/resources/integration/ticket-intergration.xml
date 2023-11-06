@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration" xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration-5.2.xsd
+    http://www.springframework.org/schema/integration/http
+    https://www.springframework.org/schema/integration/http/spring-integration-http-5.2.xsd">
+
+	<int:chain id="events" input-channel="eventsChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.ticket.url') + '/event/all'}" http-method="GET"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.api.adapter.response.EventData">
+		</int-http:outbound-gateway>
+	</int:chain>
+
+	<int:chain id="eventSeats" input-channel="eventSeatsChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.ticket.url') + '/event/seats/{eventId}'}" http-method="GET"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.api.adapter.response.EventSeatData">
+			<int-http:uri-variable name="eventId" expression="payload" />
+		</int-http:outbound-gateway>
+	</int:chain>
+	
+	<int:chain id="paySeat" input-channel="paySeatChannel" output-channel="responseChannel">
+		<int:header-enricher default-overwrite="true">
+			<int:header name="content-type" value="application/json" />
+		</int:header-enricher>
+		<int-http:outbound-gateway
+			url="#{environment.getRequiredProperty('integration.ticket.url') + '/pay/{eventId}/{seat}/{cardId}'}" http-method="POST"
+			mapped-request-headers="content-type" mapped-response-headers="none"
+			expected-response-type="hu.otpmobile.ticketing.api.adapter.response.PaySeatResponse">
+			<int-http:uri-variable name="eventId" expression="payload.eventId" />
+			<int-http:uri-variable name="seat" expression="payload.seat" />
+			<int-http:uri-variable name="cardId" expression="payload.cardId" />
+		</int-http:outbound-gateway>
+	</int:chain>
+
+</beans>
